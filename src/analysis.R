@@ -1,6 +1,7 @@
 # predict if a passanger would survive the titanic
 # output should be to gender_submission.csv
 library(tidyverse)
+library(magrittr)
 setwd("~/Documents/kaggle/titanic")
 
 # read the train/test data in
@@ -14,7 +15,6 @@ head(train)
 head(test)
 # convert categorical 'Sex' variable to binary
 unique(train$Sex)
-# TODO: a better way of doing this
 train[,"Sex"] <- sapply(train[,"Sex"],switch,"male"=0,"female"=1)
 
 # how many unique values do we have in each column?
@@ -30,17 +30,30 @@ lapply(train, function(x) sum(is.na(x)))
 
 # see that Age has a lot of NAs
 # however age is too important a variable to just drop
-# TODO: find a way to fill missing NAs
 sprintf("%2f", 100.0*sum(is.na(train$Age))/nrow(train))
 
 # create title variable that gets the title from full name
 train$Title <- as.factor(gsub("(.+), ([A-Za-z]+\\.) (.+)", "\\2", train$Name, perl=TRUE))
 print(unique(train$Title))
 
-# impute the age column using the following rule
+# TODO: impute the age column using the following rule
 # calculate the average/median for the different titles+children combos
 # insert the average/median into the NA values for age
+# sibsp and parch are columns that should be useful in imputing age
+# start by observing their distributions
 
+
+# how much of cabin variable is missing?
+# first replace the missing values with NA
+train$Cabin <- as.character(train$Cabin)
+
+train %<>%
+  mutate(Cabin = ifelse(Cabin == "", NA, Cabin))
+
+sprintf("%2f", 100.0*sum(is.na(train$Cabin))/nrow(train)) # 77%
+# need to drop column. 77% is way too much missing values to be valuable
+train %<>%
+  select(-Cabin)
 
 
 # one hot encode Embarked column
