@@ -42,6 +42,23 @@ print(unique(train$Title))
 # sibsp and parch are columns that should be useful in imputing age
 # start by observing their distributions
 
+train %>%
+  select(Age, Survived) %>%
+  ggplot(aes(Age)) + 
+  geom_histogram(position = "dodge") + # geom_hist manually removes NA values
+  labs(x = "Parch", y = "Count", title = "Count of Age values")
+
+train %>%
+  select(SibSp, Survived) %>%
+  ggplot(aes(SibSp)) + 
+  geom_histogram(position="dodge") +
+  labs(x = "Parch", y = "Count", title = "Count of Siblings/Spouse values")
+
+train %>%
+  select(Parch, Survived) %>%
+  ggplot(aes(Parch)) + 
+  geom_histogram(position="dodge") +
+  labs(x = "Parch", y = "Count", title = "Count of Parent/Child values")
 
 # how much of cabin variable is missing?
 # first replace the missing values with NA
