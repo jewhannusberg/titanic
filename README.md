@@ -15,4 +15,7 @@ Repository structure (at this time) is as follows:
 |  
 |--test  
 ```
+> Note that it is in so many ways a terrible idea to commit your data files. I'm just too lazy to commit properly.  
+
 This will potentially change in the future as I aim to familiarise myself with good project hygiene and CI/CD processes through the use of Jenkins.
+
