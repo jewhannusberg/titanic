@@ -2,6 +2,10 @@
 # output should be to gender_submission.csv
 library(tidyverse)
 library(magrittr)
+library(rpart)
+library(mice)
+library(VIM) # for better visualisations of missing data
+
 setwd("~/Documents/kaggle/titanic")
 
 # read the train/test data in
@@ -13,6 +17,8 @@ test <- read.csv('data/test.csv')
 # view the data
 head(train)
 head(test)
+
+summary(train) 
 # convert categorical 'Sex' variable to binary
 unique(train$Sex)
 train[,"Sex"] <- sapply(train[,"Sex"],switch,"male"=0,"female"=1)
@@ -60,6 +66,21 @@ train %>%
   geom_histogram(position="dodge") +
   labs(x = "Parch", y = "Count", title = "Count of Parent/Child values")
 
+# look for where values are missing
+md.pattern(train)
+# visualise missing items a little nicer
+aggr_plot <- aggr(train, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, labels=names(train), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
+
+# impute the missing data with mice package
+# TODO: study what the hell this package is doing!
+# method(mice) to see all the different methods
+# THIS DOESN'T WORK -- TOO MANY FACTORS GOING INTO MICE?
+imputed_train <- mice(train, m=5, maxit=50, method='pmm',seed=500) # predictive mean matching
+imputed_train$imp$Age # check the imputed data
+
+
+
+
 # how much of cabin variable is missing?
 # first replace the missing values with NA
 train$Cabin <- as.character(train$Cabin)
@@ -72,10 +93,6 @@ sprintf("%2f", 100.0*sum(is.na(train$Cabin))/nrow(train)) # 77%
 train %<>%
   select(-Cabin)
 
-
-# one hot encode Embarked column
-
-# in model file
-# try decision tree
-# try xgboost
-# try random forest
+# what does a decision tree say about the data simply as is?
+fit.salary <- rpart(Survived ~ , train)
+rpart.plot::prp(fit.salary)
