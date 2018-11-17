@@ -9,7 +9,7 @@ library(DMwR) # trying out combinations of LMs
 
 
 # TODO
-# 1. finish cleaning the data
+# DONE -- 1. finish cleaning the data
 # 2. modulate the cleaning component to run train and test seperately
 # 3. EDA
 # 4. model the data using a. decision tree, b. random forest, c. xgboost
@@ -114,6 +114,10 @@ p2<-impute_age %>% # original distribution
 
 gridExtra::grid.arrange(p1,p2,nrow=2) # distribution looks pretty good
 
+# insert the imputed age into the original data set
+train$Age <- imputed_age$Age
+sum(is.na(train$Age)) # check if still any missing values?
+
 # how much of cabin variable is missing?
 # first replace the missing values with NA
 train$Cabin <- as.character(train$Cabin)
@@ -126,6 +130,8 @@ sprintf("%2f", 100.0*sum(is.na(train$Cabin))/nrow(train)) # 77%
 train %<>%
   select(-Cabin)
 
+# start some EDA!
+
 # what does a decision tree say about the data simply as is?
-fit.salary <- rpart(Survived ~ , train)
-rpart.plot::prp(fit.salary)
+# fit.salary <- rpart(Survived ~ , train)
+# rpart.plot::prp(fit.salary)
