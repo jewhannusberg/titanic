@@ -5,6 +5,14 @@ library(magrittr)
 library(rpart)
 library(mice)
 library(VIM) # for better visualisations of missing data
+library(DMwR) # trying out combinations of LMs
+
+
+# TODO
+# 1. finish cleaning the data
+# 2. modulate the cleaning component to run train and test seperately
+# 3. EDA
+# 4. model the data using a. decision tree, b. random forest, c. xgboost
 
 setwd("~/Documents/kaggle/titanic")
 
@@ -42,6 +50,10 @@ sprintf("%2f", 100.0*sum(is.na(train$Age))/nrow(train))
 train$Title <- as.factor(gsub("(.+), ([A-Za-z]+\\.) (.+)", "\\2", train$Name, perl=TRUE))
 print(unique(train$Title))
 
+# combine SibSp and Parch columns to create a single family column
+train$Family <- train$SibSp + train$Parch + 1 # add 1 for the row character
+
+
 # TODO: impute the age column using the following rule
 # calculate the average/median for the different titles+children combos
 # insert the average/median into the NA values for age
@@ -52,13 +64,13 @@ train %>%
   select(Age, Survived) %>%
   ggplot(aes(Age)) + 
   geom_histogram(position = "dodge") + # geom_hist manually removes NA values
-  labs(x = "Parch", y = "Count", title = "Count of Age values")
+  labs(x = "Age", y = "Count", title = "Count of Age values")
 
 train %>%
   select(SibSp, Survived) %>%
   ggplot(aes(SibSp)) + 
   geom_histogram(position="dodge") +
-  labs(x = "Parch", y = "Count", title = "Count of Siblings/Spouse values")
+  labs(x = "SibSp", y = "Count", title = "Count of Siblings/Spouse values")
 
 train %>%
   select(Parch, Survived) %>%
@@ -74,12 +86,33 @@ aggr_plot <- aggr(train, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, l
 # impute the missing data with mice package
 # TODO: study what the hell this package is doing!
 # method(mice) to see all the different methods
-# THIS DOESN'T WORK -- TOO MANY FACTORS GOING INTO MICE?
-imputed_train <- mice(train, m=5, maxit=50, method='pmm',seed=500) # predictive mean matching
-imputed_train$imp$Age # check the imputed data
 
+# pick the factors we want to impute on by building a multi-linear model to see top
+# contributing factors
+age_model <- stats::lm(data=train, formula=Age ~ as.factor(Pclass) + as.factor(Sex) + SibSp + Parch +
+                         as.factor(Embarked) + as.factor(Title) + as.factor(Family))
 
+age_model <- step(age_model)
 
+# use SibSp, Embarked, Family, Pclass, Title to impute Age
+
+impute_age <- train %>%
+  select(Age, SibSp, Embarked, Family, Pclass, Title)
+
+imputed_age <- mice(impute_age, m=5, maxit=50, method='rf',seed=500)
+
+# view the distribution of the imputed age against the original distribution
+p1<-train %>% # original distribution
+  ggplot(aes(Age)) + 
+  geom_histogram(position = "dodge") + # geom_hist manually removes NA values
+  labs(x = "Age", y = "Count", title = "Distribution of original age values")
+
+p2<-impute_age %>% # original distribution
+  ggplot(aes(Age)) + 
+  geom_histogram(fill="red", position = "dodge") + # geom_hist manually removes NA values
+  labs(x = "Age", y = "Count", title = "Distribution of imputed age values")
+
+gridExtra::grid.arrange(p1,p2,nrow=2) # distribution looks pretty good
 
 # how much of cabin variable is missing?
 # first replace the missing values with NA
