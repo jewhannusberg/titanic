@@ -1,0 +1,22 @@
+---
+title: "Titanic - Exploratory Data Analysis"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Introduction
+
+Display exploratory data analysis of the Titanic dataset here. The purpose is to understand the data before moving into the modelling phase of the project.
+
+> Floating table of contents is not working!
+
+# Analysis
+
+```{r read-data, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+
+train = read.csv("../data/train.csv")
+
+head(train)
+
+```

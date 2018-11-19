@@ -10,7 +10,7 @@ library(DMwR) # trying out combinations of LMs
 
 # TODO
 # DONE -- 1. finish cleaning the data
-# 2. modulate the cleaning component to run train and test seperately
+# DONE -- 2. modulate the cleaning component to run train and test seperately
 # 3. EDA
 # 4. model the data using a. decision tree, b. random forest, c. xgboost
 
@@ -126,7 +126,6 @@ train <- family_feature(train)
 train <- title_feature(train)
 train <- impute_missing_values(train)
 
-test <- drop_cabin(test)
 test <- drop_cabin(test)
 test <- encode_sex(test)
 test <- family_feature(test)
