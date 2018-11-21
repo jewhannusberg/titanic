@@ -71,7 +71,6 @@ drop_cabin <- function(data) {
   return(data)
 }
 
-# TODO: the Age variable is lost in this
 impute_missing_values <- function(data) {
   # look for where values are missing
   # md.pattern(data)
@@ -112,6 +111,12 @@ impute_missing_values <- function(data) {
   return(data)
 }
 
+# TODO: bin age variable to prevent overfitting
+bin_age <- function(data) {
+  return(data)
+}
+
+
 setwd("~/Documents/kaggle/titanic")
 
 # read the train/test data in
@@ -126,13 +131,15 @@ train <- family_feature(train)
 train <- title_feature(train)
 train <- impute_missing_values(train)
 
+saveRDS(train, "data/clean_train.RDS")
+
 test <- drop_cabin(test)
 test <- encode_sex(test)
 test <- family_feature(test)
 test <- title_feature(test)
 test <- impute_missing_values(test)
 
-
+saveRDS(train, "data/clean_test.RDS")
 # what does a decision tree say about the data simply as is?
 # fit.salary <- rpart(Survived ~ , train)
 # rpart.plot::prp(fit.salary)
