@@ -7,16 +7,8 @@ library(mice)
 library(VIM) # for better visualisations of missing data
 library(DMwR) # trying out combinations of LMs
 
-
-# TODO
-# DONE -- 1. finish cleaning the data
-# DONE -- 2. modulate the cleaning component to run train and test seperately
-# 3. EDA
-# 4. model the data using a. decision tree, b. random forest, c. xgboost
-
 ##### Data Cleanp #####
 describe_data <- function(data) {
-  
   
   # how many unique values do we have in each column?
   lapply(data, function(x) length(unique(x)))
@@ -37,14 +29,14 @@ describe_data <- function(data) {
 encode_sex <- function(data) {
   # convert categorical 'Sex' variable to binary
   print(unique(data$Sex))
-  data[,"Sex"] <- sapply(data[,"Sex"],switch,"male"=0,"female"=1)
+  data[,"Sex"] <- sapply(data[,"Sex"], switch, "male" = 0, "female" = 1)
   print(unique(data$Sex))
   return(data)
 }
 
 title_feature <- function(data) {
   # create title variable that gets the title from full name
-  data$Title <- as.factor(gsub("(.+), ([A-Za-z]+\\.) (.+)", "\\2", data$Name, perl=TRUE))
+  data$Title <- as.character(gsub("(.+), ([A-Za-z]+\\.) (.+)", "\\2", data$Name, perl=TRUE))
   print(unique(data$Title))
   return(data)
 }
@@ -116,6 +108,17 @@ bin_age <- function(data) {
   return(data)
 }
 
+replace_empty_embarked <- function(data) {
+  data$Embarked <- as.factor(data$Embarked)
+  
+  data %<>%
+    mutate(Embarked = ifelse(Embarked == "", NA, Embarked))
+  
+  data$Embarked[which(is.na(data$Embarked))] <- mode(na.omit(data$Embarked))
+  
+  return(data)
+}
+
 
 setwd("~/Documents/kaggle/titanic")
 
@@ -124,22 +127,27 @@ setwd("~/Documents/kaggle/titanic")
 train <- read.csv('data/train.csv')
 test <- read.csv('data/test.csv')
 
-# run the training and test sets seperately through the cleanup code
-train <- drop_cabin(train)
-train <- encode_sex(train)
-train <- family_feature(train)
-train <- title_feature(train)
-train <- impute_missing_values(train)
 
+# combine the data
+test$Survived <- NA
+data = rbind(test, train)
+
+View(data)
+
+data$Embarked[c(62,830)] = "S"
+data$Embarked <- factor(data$Embarked)
+
+
+data <- drop_cabin(data)
+data <- encode_sex(data)
+data <- family_feature(data)
+# data <- replace_empty_embarked(data) # TODO: DOESNT WORK PROPERLY
+data <- title_feature(data)
+data <- impute_missing_values(data)
+
+test <- data[1:418,]
+train <- data[419:1309,]
+
+# don't run these for the xgboost muckaround yet
 saveRDS(train, "data/clean_train.RDS")
-
-test <- drop_cabin(test)
-test <- encode_sex(test)
-test <- family_feature(test)
-test <- title_feature(test)
-test <- impute_missing_values(test)
-
-saveRDS(train, "data/clean_test.RDS")
-# what does a decision tree say about the data simply as is?
-# fit.salary <- rpart(Survived ~ , train)
-# rpart.plot::prp(fit.salary)
+saveRDS(test, "data/clean_test.RDS")
