@@ -109,13 +109,8 @@ bin_age <- function(data) {
 }
 
 replace_empty_embarked <- function(data) {
-  data$Embarked <- as.factor(data$Embarked)
-  
-  data %<>%
-    mutate(Embarked = ifelse(Embarked == "", NA, Embarked))
-  
-  data$Embarked[which(is.na(data$Embarked))] <- mode(na.omit(data$Embarked))
-  
+  data$Embarked[c(62,830)] = "S"
+  data$Embarked <- factor(data$Embarked)
   return(data)
 }
 
@@ -127,23 +122,18 @@ setwd("~/Documents/kaggle/titanic")
 train <- read.csv('data/train.csv')
 test <- read.csv('data/test.csv')
 
-
 # combine the data
 test$Survived <- NA
 data = rbind(test, train)
 
-View(data)
-
-data$Embarked[c(62,830)] = "S"
-data$Embarked <- factor(data$Embarked)
-
-
 data <- drop_cabin(data)
 data <- encode_sex(data)
 data <- family_feature(data)
-# data <- replace_empty_embarked(data) # TODO: DOESNT WORK PROPERLY
+data <- replace_empty_embarked(data) # TODO: DOESNT WORK PROPERLY
 data <- title_feature(data)
 data <- impute_missing_values(data)
+
+saveRDS(data, "data/full_dataset.RDS")
 
 test <- data[1:418,]
 train <- data[419:1309,]
