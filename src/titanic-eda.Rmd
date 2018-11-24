@@ -1,6 +1,6 @@
 ---
 title: "Titanic - Exploratory Data Analysis"
-output: html_notebook
+output: rmarkdown::github_document
 editor_options: 
   chunk_output_type: inline
 ---
@@ -21,7 +21,7 @@ train = readRDS("../data/clean_train.RDS")
 
 ## Survivability by passanger class
 ```{r plot-pclass-survival}
-
+library(ggplot2)
 ggplot(train, aes(x = Pclass, fill = as.factor(Survived))) +
   geom_bar() +
   labs(x = "Passanger Class", y = "Count of survivors", fill = "Survived",
